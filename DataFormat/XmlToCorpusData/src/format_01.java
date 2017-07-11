@@ -43,14 +43,14 @@ public class format_01 {
 						Sentence2 = Sentence2 + check(line.split("\t")[2]);
 					}else if(line.contains("</p>") || line.contains("</head>") ){
 						if(Sentence != ""){
-							System.out.println(Sentence);
-							System.out.println(Sentence2);
-							System.out.println();
-//							bw.write(Sentence);
-//						   	bw.newLine();
-//						   	bw.write(Sentence2);
-//						   	bw.newLine();
-//						   	bw.newLine();
+//							System.out.println(Sentence);
+//							System.out.println(Sentence2);
+//							System.out.println();
+							bw.write(Sentence);
+						   	bw.newLine();
+						   	bw.write(Sentence2);
+						   	bw.newLine();
+						   	bw.newLine();
 						   	Sentence = "";
 						   	Sentence2 = "";
 						   	bw.flush();
@@ -70,20 +70,32 @@ public class format_01 {
 	//Data Change Function
 	//ALL : ETM, JKB, JKC, JKG, JKO, JKQ, JKS, MAG, MAJ, NNB, NNG, NNP, VCN, VCP, XPN, XSA, XSN, XSV, EC, 
 	//      EF, EP, IC, JC, JX, MM, NA, NP, NR, SE, SF, SL, SN, SO, SP, SS, SW, VA, VV, VX, XR, ETN......41
-	//Invoked : (NNB, NNG, NNP, NR, XPN, XSN), (VCP,VCN, VA, VV, VX, XSA), (SN), (MAG, MAJ, MM)......16
-	//Not Invoked : JKQ, XSV, IC, NA, SE, SF, SL, SO, SS, SW, XR, ETN......12
+	//Invoked : (NNB, NNG, NNP, NR, XPN, XSN), (VCP,VCN, VA, VV, VX, XSA), (SN), (MAG, MAJ, MM), (SS)......16
+	//Not Invoked : JKQ, XSV, IC, NA ......12
 	//Meaningless : SP(한국/NNP + ,/SP), NP(이/NP + 로써/JKB), ETM(오는	오/VV + 는/ETM), JKB(조치__04/NNG + 로/JKB), 
 	//				JKC(개방형이	개방__04/NNG + 형/XSN + 이/JKC), JKG(주식__03/NNG + 의/JKG), JKO(마이너스/NNG + 를/JKO)
 	//				JKS(자본금/NNG + 이/JKS), EC(보__01/VV + 아/EC), EF(같/VA + 다/EF + ./SF) EP(빚/VV + 었/EP + 던/ETM)
-	//				JC(능력__02/NNG + 과/JC), JX(경제__04/NNG + 는/JX)......13
+	//				JC(능력__02/NNG + 과/JC), JX(경제__04/NNG + 는/JX), SE(반등__01/NNG + …/SE), SF(있/VX + 다/EF + ./SF)
+	//              SO(2/SN + ∼/SO + 3/SN + %/SW + 에/JKB), ETN(않/VX + 기/ETN) ......13
 	String check(String str){
 		String result = "";
 		String type = "";
 		String[] words = str.split(" \\+ ");
 		for (String word : words ){
 		    if(word.contains("NNB") || word.contains("NNP") || word.contains("NNG") || word.contains("XPN") || word.contains("XSN")
-		    		|| word.contains("NR")){    
-		    	result = result +  word.split("/")[0];
+		    		|| word.contains("NR") || word.contains("SL") || word.contains("SW")|| word.contains("XR")){
+		    	if(type.equals("/N ")) {
+		    		if(result.contains("__")) {
+		    			result = result.split("__")[0];
+		    		}
+		    		if(word.split("/")[0].contains("__")) {
+		    			result = result +  word.split("/")[0].split("__")[0];
+		    		}else {
+		    			result = result +  word.split("/")[0];
+		    		}
+		    	}else {
+		    		result = result +  word.split("/")[0];
+		    	}
 		    	type = "/N ";
 		    }
 		    else if(word.contains("VCP") || word.contains("VCN") || word.contains("XSA") || word.contains("VA") || word.contains("VV")
@@ -100,9 +112,18 @@ public class format_01 {
 		    	result = result +  word.split("/")[0];
 		    	type = "/M ";
 		    }
-		    
-		   
-		    
+		    else if(word.contains("SS")) {
+		    	if(result.contains("(") || result.contains(")")) {
+	    			return "";
+	    		}
+		    	else{
+		    		if(type.equals("/N ")) {
+		    			result = result + type;
+		    			type = "";
+			    	}
+		    	}
+		    }
+	    
 		}
 		if(result.equals("") || type.equals(""))
 			return result;
