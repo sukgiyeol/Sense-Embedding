@@ -8,12 +8,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-public class format_01 {
+public class format_02 {
 	ArrayList<String> types = new ArrayList<String>();
-	format_01(String inputFile){
+	format_02(String inputFile){
 		String FileName = inputFile.split("\\.")[0];
 		File inFile = new File("input\\" + FileName + ".txt");
-		File outFile = new File("output\\text88.txt");
+		File outFile = new File("output\\text99.txt");
 		if(!outFile.exists()) {
 			try {
 				outFile.createNewFile();
@@ -36,7 +36,7 @@ public class format_01 {
    
 			while ((line = br.readLine()) != null) {
 				if(line.contains("<source>")) sourceArea = true;
-				else if(line.contains("</source>")) sourceArea = false;
+				else if(line.contains("</source>")) { sourceArea = false;	bw.newLine();}
 				if(!sourceArea) {
 					if(line.contains(FileName)){
 						Sentence = Sentence + line.split("\t")[1] + " ";
@@ -49,8 +49,7 @@ public class format_01 {
 //							bw.write(Sentence);
 //						   	bw.newLine();
 						   	bw.write(Sentence2);
-						   	bw.newLine();
-//						   	bw.newLine();
+						   	
 						   	Sentence = "";
 						   	Sentence2 = "";
 						   	bw.flush();
