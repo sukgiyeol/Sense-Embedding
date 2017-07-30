@@ -16,15 +16,19 @@ void corp2word(const char *path, const char *filename);
 ofstream writeFile, logFile;
 int fileNum = 0, currntNum = 0;
 int main(int argc, char **argv) {
-	if (argc == 1) {
+	char output_word[100], output_wordlog[100];
+	if (argc != 3) {
 		cout << "Error!! Put the right Parameter" << endl;
-		cout << "Put Parameter for pasing : <Corp Folder Path> (ex.'./corp2vec <Corp Folder Path>')" << endl;
+		cout << "Put Parameter for pasing : <Corp Folder Path> <OutPut Folder Path> (ex.'./corp2vec <Corp Folder Path> <OutPut Folder Path>')" << endl;
 		cout << "This Program get file data in folder you add and Parsing All file in folder." << endl;
 		cout << "Be careful about Putting Parameter(Not File Path)" << endl;
 		return 0;
 	}
+	strcpy(output_word, argv[2]);
+	strcpy(output_wordlog, argv[2]);
+	strcat(output_word, "word");
+	strcat(output_wordlog, "word_log");
 
-	
 	DIR *dir;
 	struct dirent *ent;
 	dir = opendir(argv[1]);
@@ -38,8 +42,8 @@ int main(int argc, char **argv) {
 		closedir(dir);
 	}
 
-	writeFile.open("data");
-	logFile.open("data_log");
+	writeFile.open(output_word);
+	logFile.open(output_wordlog);
 
 	dir = opendir(argv[1]);
 
@@ -71,24 +75,22 @@ void corp2word(const char *path, const char *filename) {
 	memcpy(name, path, len1);
 	memcpy(name + len1, filename, len2 + 1);
 
-
 	readFile.open(name);
 
 	//ofstream testFile;
 	//testFile.open("sentence");
 	if (readFile.is_open()) {
 		logFile << "====================== " << filename << "("<<currntNum<<"/"<< fileNum << ") file parsing Start." << "======================" << endl;
-
 		vector<string> str;
 		string temp;
 		bool noun, details;
-		int vector_word_size, num;
+		int vector_word_size;
 		while (getline(readFile, string_line))								//Example '동아대는 동아대/고유명사/116+는/보조사/255	1989년 1989/수관형사/231+년/단위성의존명사/235	전국 전국/일반명사/63'
 		{
 			lineNum++;
 			vector_line = split(string_line, '	');							//Not '\t' Be Careful !!
-			for (int i = 0; i < vector_line.size(); ++i) {					//Example '동아대는 동아대/고유명사/116+는/보조사/255'
-																			//testFile << split(vector_line[i], ' ')[0] << " ";
+			for (unsigned i = 0; i < vector_line.size(); ++i) {					//Example '동아대는 동아대/고유명사/116+는/보조사/255'
+				//testFile << split(vector_line[i], ' ')[0] << " ";
 				if (result.compare("") != 0) 	result = "";
 				vector_word = split(vector_line[i], ' ');
 				vector_word_size = vector_word.size();
@@ -99,13 +101,13 @@ void corp2word(const char *path, const char *filename) {
 					details = false;
 					for (int j = 0; j < vector_word_size; ++j) {				//Example '동아대/고유명사/116' and '는/보조사/255'
 						str = split(vector_word[j], '/');
-						if (str[1].find("전성어미") != -1) {
+						if (str[1].find("전성어미") != string::npos) {
 							//none
 						}
-						else if (str[1].find("조사") != -1) {
+						else if (str[1].find("조사") != string::npos) {
 							//none
 						}
-						else if (str[1].find("명사") != -1 || str[1].find("외국어") != -1 || str[1].find("서수사") != -1) {
+						else if (str[1].find("명사") != string::npos || str[1].find("외국어") != string::npos || str[1].find("서수사") != string::npos) {
 							if (noun) {
 								temp.append("+");
 								temp.append(str[0]);
@@ -118,17 +120,17 @@ void corp2word(const char *path, const char *filename) {
 							}
 							noun = true;
 						}
-						else if (str[1].find("형용사") != -1) {
+						else if (str[1].find("형용사") != string::npos) {
 							result.append(str[0]);
 						}
-						else if (str[1].find("부사") != -1) {
+						else if (str[1].find("부사") != string::npos) {
 							result.append(str[0]);
 						}
-						else if (str[1].find("화폐단위") != -1 || str[1].find("도량형단위") != -1) {
+						else if (str[1].find("화폐단위") != string::npos || str[1].find("도량형단위") != string::npos) {
 							result.append(str[0]);
 						}
-						else if (str[1].find("수관형사") != -1) {
-							for (int k = 0; k < str[0].length(); k++) {
+						else if (str[1].find("수관형사") != string::npos) {
+							for (unsigned k = 0; k < str[0].length(); k++) {
 								if (str[0][k] - 48 >= 0 && str[0][k] - 48 <= 9) {
 									result.push_back('n');
 								}
@@ -137,8 +139,8 @@ void corp2word(const char *path, const char *filename) {
 								}
 							}
 						}
-						else if (str[1].find("동사") != -1) {
-							if (str[1].find("동사화접미사") != -1) {
+						else if (str[1].find("동사") != string::npos) {
+							if (str[1].find("동사화접미사") != string::npos) {
 								temp.append("+");
 								temp.append(str[0]);
 								result.append(str[0]);
@@ -154,7 +156,6 @@ void corp2word(const char *path, const char *filename) {
 						// 수사(양수사, 서수사), 한자, 외국어, 부호 싹다, 부사, 감탄사
 						//}
 					}
-
 					if (details) {
 						result.append("(");
 						result.append(temp);

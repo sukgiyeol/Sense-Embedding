@@ -11,14 +11,14 @@ int main(int argc, char **argv) {
 	char fileName[max_size];
 	float dist, len, vec[max_size];
 	long long words, vectorLen, wordNum[100];
-	long long a, b, c, d;			//loof index
+	long long a, b, c;			//loof index
 	char ch;
 	float *Vectors;
 	char *vocab;
 
 	//Parameter Check
 	if (argc < 2) {
-		printf("Usage: ./distance <FILE>\nwhere FILE contains word projections in the BINARY FORMAT\n");
+		printf("Usage: ./pair_distance <FILE>\nwhere FILE contains word projections in the BINARY FORMAT\n\n");
 		return 0;
 	}
 
@@ -49,9 +49,11 @@ int main(int argc, char **argv) {
 
 	//Loop Main Function
 	while (1) {
+	back:
 		printf("Enter two words separated by space (EXIT to break): ");
 		
 		//Save input word to variable
+		a = 0;
 		while (1) {
 			inputChar[a] = fgetc(stdin);
 			if ((inputChar[a] == '\n') || (a >= max_size - 1)) {
@@ -69,12 +71,19 @@ int main(int argc, char **argv) {
 			b++;
 			c++;
 			inputWord[a][b] = 0;
-			if (inputChar[c] == 0) break;
+			if (inputChar[c] == 0 ) break;
 			if (inputChar[c] == ' ') {
 				a++;
 				b = 0;
 				c++;
+				if (a > 1) {
+					break;
+				}
 			}
+		}
+		if (a != 1) {
+			printf("  |- Two word are not enter by input parameter\n\n");
+			goto back;
 		}
 		
 		//Get Number of two Words in vocabulary
@@ -83,17 +92,26 @@ int main(int argc, char **argv) {
 			if (b == words) b = -1;
 			wordNum[a] = b;
 			if (b == -1) {
-				goto end;
+				printf("  |- Input '%s' is Out of dictionary word or Bad Vector!\n\n", inputWord[a]);
+				goto back;
 			}
 		}
-		if (b == -1) goto end;
+
+		if (wordNum[0] == -1 ) {
+			printf("  |- Input '%s' is Out of dictionary word or Bad Vector!\n\n", inputWord[0]);
+			goto back;
+		}
+		if (wordNum[1] == -1) {
+			printf("  |- Input '%s' is Out of dictionary word or Bad Vector!\n\n", inputWord[1]);
+			goto back;
+		}
+
 		printf("\n--------- Cosine Distance Between Two Words! ---------\n");
-		printf("   |- Input First Word : '%s(%lld)'\n", inputWord[0], wordNum[0]);
-		printf("   |- Input Second Word : '%s(%lld)'\n", inputWord[1], wordNum[1]);
-			
+		printf("   |- Input First Word : %s(%lld)\n", inputWord[0], wordNum[0]);
+		printf("   |- Input Second Word : %s(%lld)\n", inputWord[1], wordNum[1]);
+
 		//Calculation Variable 'vec' with first word vector
 		for (a = 0; a < vectorLen; a++) vec[a] = 0;
-		if (wordNum[0] == -1) goto end;
 		for (a = 0; a < vectorLen; a++) vec[a] += Vectors[a + wordNum[0] * vectorLen];
 		len = 0;
 		for (a = 0; a < vectorLen; a++) len += vec[a] * vec[a];
@@ -103,10 +121,7 @@ int main(int argc, char **argv) {
 		//Calculation distance with two input words
 		dist = 0;
 		for (a = 0; a < vectorLen; a++) dist += vec[a] * Vectors[a + wordNum[1] * vectorLen];
-		printf("   |- Distance : %f\n", dist);
-		
-	end:
-		printf("Out of dictionary word or Bad Vector!");
+		printf("   |- Distance : %f\n\n", dist);		
 	}
 	return 0;
 }
