@@ -12,6 +12,7 @@
 using namespace std;
 
 vector<string> split(string str, char delimiter);
+string lastStr(string str, char delimiter);
 void corp2word(const char *path, const char *filename);
 ofstream writeFile, logFile;
 int fileNum = 0, currntNum = 0;
@@ -19,12 +20,14 @@ int main(int argc, char **argv) {
 	char output_word[100], output_wordlog[100];
 	if (argc != 3) {
 		cout << "Error!! Put the right Parameter" << endl;
-		cout << "Put Parameter for pasing : <Corp Folder Path> <OutPut Folder Path> (ex.'./corp2vec <Corp Folder Path> <OutPut Folder Path>')" << endl;
+		cout << "Put Parameter for pasing : <Corp Folder Path> <OutPut File> (ex.'./corp2vec <Corp Folder Path> <OutPut File>')" << endl;
 		cout << "This Program get file data in folder you add and Parsing All file in folder." << endl;
 		cout << "Be careful about Putting Parameter(Not File Path)" << endl;
 		return 0;
 	}
 	strcpy(output_word, argv[2]);
+	writeFile.open(output_word);
+	logFile.open(output_wordlog);
 	strcpy(output_wordlog, argv[2]);
 	strcat(output_word, "word");
 	strcat(output_wordlog, "word_log");
@@ -41,9 +44,6 @@ int main(int argc, char **argv) {
 		}
 		closedir(dir);
 	}
-
-	writeFile.open(output_word);
-	logFile.open(output_wordlog);
 
 	dir = opendir(argv[1]);
 
@@ -189,6 +189,22 @@ vector<string> split(string str, char delimiter) {
 	}
 
 	return internal;
+}
+
+string path(string str, char delimiter) {
+	vector<string> internal;
+	stringstream ss(str);
+	string tok;
+
+	while (getline(ss, tok, delimiter)) {
+		internal.push_back(tok);
+	}
+
+	vector<string> external;
+	stringstream dd(str);
+	string result;
+
+	return tok;
 }
 
 
