@@ -77,8 +77,7 @@ int main(int argc, char **argv) {
 	numOfProblemWordList = (int*)malloc(totalNumOfProblem * sizeof(int));
 	numOfProblemWordListSdk = (int*)malloc(totalNumOfProblem * sizeof(int));
 	int indexOfLine = 0, indexOfWord = 0;
-	while (indexOfLine < totalNumOfProblem) {
-		fgets(text, sizeof(text), aFile);
+	while (fgets(text, sizeof(text), aFile)!=NULL) {
 		tokens = (char **)malloc(lineOfProblem * sizeof(char**));
 		for (int i = 0; i < lineOfProblem; i++) {
 			tokens[i] = (char*)malloc(max_size * sizeof(char*));
