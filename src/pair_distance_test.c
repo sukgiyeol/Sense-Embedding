@@ -9,7 +9,7 @@ const long long max_width = 50; 		 // max length of word alphabet
 int main(int argc, char **argv) {
 	FILE *vectorFile, *testFile, *outputFile;
 	char filename[100];
-	float dist, len, vec[max_size];
+	float dist, len, vec[max_size], programRate;
 	long long words, vectorLen, wordNum[100];
 	long long a, b;			//loof index
 	char ch;
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 		printf("output file not create\n");
 		return -1;
 	}
-	fprintf(outputFile, "word\tvocabNum\tword\tvocabNum\tservey\tdistance\tresult\n");
+	fprintf(outputFile, "word\tvocabNum\tword\tvocabNum\tservey\tdistance\matching rate\n");
 
 	fscanf(vectorFile, "%lld", &words);						//%lld long long Data
 	fscanf(vectorFile, "%lld", &vectorLen);
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 		}
 
 		if (!found) {
-			fprintf(outputFile, "%s\t%lld\t%s\t%lld\t%f\t%f\t%f(%%)\n", &data[0][0], wordNum[0], &data[1][0], wordNum[1], data3, 0.00, 0.00);
+			fprintf(outputFile, "%s\t%lld\t%s\t%lld\t%.4f\t%.4f\t%.4f(%%)\n", &data[0][0], wordNum[0], &data[1][0], wordNum[1], data3, 0.00, 0.00);
 		}
 		else {
 			accuracy = 0;
@@ -99,23 +99,31 @@ int main(int argc, char **argv) {
 			for (a = 0; a < vectorLen; a++) vec[a] /= len;
 
 			//Calculation distance with two input words
-			dist = 0;
+			dist = 0.0;
 			for (a = 0; a < vectorLen; a++) dist += vec[a] * Vectors[a + wordNum[1] * vectorLen];
-			
+			dist = fabs(dist);
 			dist *= 10;
-			accuracy = dist * 100 / data3;
+			accuracy = 100 - (fabs(dist - data3) * 10);
 			accuracySum += accuracy;
-			fprintf(outputFile, "%s\t%lld\t%s\t%lld\t%f\t%f\t%f(%%)\n", &data[0][0], wordNum[0], &data[1][0], wordNum[1], data3, dist, accuracy);
+			fprintf(outputFile, "%s\t%lld\t%s\t%lld\t%.4f\t%.4f\t%.4f(%%)\n", &data[0][0], wordNum[0], &data[1][0], wordNum[1], data3, dist, accuracy);
 		}
 	}
-	accuracySum = accuracySum / testNum;
+	programRate = testNum * 100;
+	programRate = programRate / allNum;
 	fprintf(outputFile,"\nNumber of All Questions in Survey : %d\n", allNum);
 	printf("\nNumber of All Questions in Survey : %d\n", allNum);
+	
 	fprintf(outputFile, "Number of Calculated Questions in Survey : %d\n", testNum);
 	printf("Number of Calculated Questions in Survey : %d\n", testNum);
-	fprintf(outputFile, "Average difference : %lf\n", accuracySum);
-	printf("Average difference : %lf\n", accuracySum);
 
+	fprintf(outputFile, "Program Execution Rate : %.4f(%%)\n", programRate);
+	printf("Program Execution Rate : %.4f(%%)\n", programRate);
+	
+	fprintf(outputFile, "Average matching rate of All Questions : %.4lflf(%%)\n", ((allNum-testNum) * 100 + accuracySum) / allNum);
+	printf("Average matching rate of All Questions: %.4lf(%%)\n", ((allNum - testNum) * 100 + accuracySum) / allNum);
+
+	fprintf(outputFile, "Average matching rate of Calculated Questions : %.4lf(%%)\n", accuracySum / testNum);
+	printf("Average matching rate of Calculated Questions: %.4lf(%%)\n", accuracySum / testNum);
 	return 0;
 }
 		

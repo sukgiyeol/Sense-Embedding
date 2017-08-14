@@ -6,7 +6,7 @@
 #include <dirent.h>
 
 #define buf 1024
-#define classNum 12
+#define classNum 14
 
 typedef enum { false, true } bool;
 void corp2word(const char *path, const char *filename);
@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
 	int fileNum = 0, currntNum = 0;
 
 	//Parameter Check
-	if (argc < 3)   
+	if (argc < 3)
 	{
 		printf("Usage: ./corp2vec <Corp Folder Path> <OutPut File Path>\n");
 		printf("Error!! Put the right Parameter\n");
@@ -39,8 +39,8 @@ int main(int argc, char **argv) {
 		}
 		closedir(dir);
 	}
-	
-	if(!corp2word_init(argv[2])) return -1;
+
+	if (!corp2word_init(argv[2])) return -1;
 
 	dir = opendir(argv[1]);
 	if (dir != NULL) {
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 	return 0;
 }
 bool corp2word_init(const char *filename) {
-	int cl;
+	int i = 0;
 	wordclass = fopen("wordclass", "r");
 	if (wordclass == NULL) {
 		printf("File 'wordclass' not found. so Create 'wordclass' file\n");
@@ -73,6 +73,7 @@ bool corp2word_init(const char *filename) {
 		fprintf(wordclass, "정성어미\n");
 		fprintf(wordclass, "조사\n");
 		fprintf(wordclass, "명사\n");
+		fprintf(wordclass, "단위성의존명사\n");
 		fprintf(wordclass, "외국어\n");
 		fprintf(wordclass, "서수사\n");
 		fprintf(wordclass, "형용사\n");
@@ -80,8 +81,40 @@ bool corp2word_init(const char *filename) {
 		fprintf(wordclass, "화폐단위\n");
 		fprintf(wordclass, "도량형단위\n");
 		fprintf(wordclass, "수관형사\n");
-		fprintf(wordclass, "동사\n");
 		fprintf(wordclass, "동사화접미사\n");
+		fprintf(wordclass, "동사\n");
+		fprintf(wordclass, "하다\n");
+		fclose(wordclass);
+		return false;
+	}
+
+	while (!feof(wordclass)) {
+		fscanf(wordclass, "%s\n", wordC[i]);
+		i++;
+	}
+
+	if (i != classNum) {
+		fclose(wordclass);
+		printf("Checking 'wordclass' is fail. so Create new 'wordclass' file\n");
+		printf("Change File Encoding to utf-8\n");
+		printf(" 1. vi wordclass\n");
+		printf(" 2. :set fileencoding=utf-8\n");
+		printf(" 3. :wq\n\n");
+		wordclass = fopen("wordclass", "w");
+		fprintf(wordclass, "정성어미\n");
+		fprintf(wordclass, "조사\n");
+		fprintf(wordclass, "단위성의존명사\n");
+		fprintf(wordclass, "명사\n");
+		fprintf(wordclass, "외국어\n");
+		fprintf(wordclass, "서수사\n");
+		fprintf(wordclass, "형용사\n");
+		fprintf(wordclass, "부사\n");
+		fprintf(wordclass, "화폐단위\n");
+		fprintf(wordclass, "도량형단위\n");
+		fprintf(wordclass, "수관형사\n");
+		fprintf(wordclass, "동사화접미사\n");
+		fprintf(wordclass, "동사\n");
+		fprintf(wordclass, "하다\n");
 		fclose(wordclass);
 		return false;
 	}
@@ -90,10 +123,6 @@ bool corp2word_init(const char *filename) {
 	if (word == NULL) {
 		printf("File '%s' not open\n", filename);
 		return false;
-	}
-
-	for (cl = 0; cl < classNum; cl++) {
-		fscanf(wordclass, "%s\n", wordC[cl]);
 	}
 
 	return true;
@@ -108,8 +137,8 @@ void corp2word(const char *path, const char *filename) {
 	char *main_sp, *sub_sp, *sub2_sp, *sub3_sp;
 	char *main_temp, *sub_temp, *sub2_temp;
 	char *contain;
-	bool noun, details;
-	char result[buf], temp[buf], ctemp[2];
+	bool noun, number, number_deter, details;					//verb
+	char result[buf], temp[buf], ctemp[3];
 
 	const size_t len1 = strlen(path);
 	const size_t len2 = strlen(filename);
@@ -135,7 +164,9 @@ void corp2word(const char *path, const char *filename) {
 			strcpy(result, "");
 			strcpy(temp, "");
 
-			noun = false;
+			noun = false;	//verb = false;
+			number = false;
+			number_deter = false;
 			details = false;
 			if (sub_p != NULL) {								//Example '동아대/고유명사/116+는/보조사/255'
 				sub_temp = sub_p;
@@ -148,55 +179,65 @@ void corp2word(const char *path, const char *filename) {
 					contain = strstr(sub2_p, wordC[1]);		//조사
 					if (contain != NULL) goto s0;
 
-					contain = strstr(sub2_p, wordC[2]);		//명사
+					contain = strstr(sub2_p, wordC[2]);		//단위성의존명사
+					if (contain != NULL) {
+						j = 5;
+						goto s0;
+					}
+					contain = strstr(sub2_p, wordC[3]);		//명사
+					if (contain != NULL) {
+						j = 1;
+						goto s0;
+					}
+					contain = strstr(sub2_p, wordC[4]);		//외국어
 					if (contain != NULL) {
 						j = 1;
 						goto s0;
 					}
 
-					contain = strstr(sub2_p, wordC[3]);		//외국어
+					contain = strstr(sub2_p, wordC[5]);		//서수사
 					if (contain != NULL) {
 						j = 1;
 						goto s0;
 					}
 
-					contain = strstr(sub2_p, wordC[4]);		//서수사
-					if (contain != NULL) {
-						j = 1;
-						goto s0;
-					}
-
-					contain = strstr(sub2_p, wordC[5]);		//형용사
+					contain = strstr(sub2_p, wordC[6]);		//형용사
 					if (contain != NULL) {
 						j = 2;
 						goto s0;
 					}
 
-					contain = strstr(sub2_p, wordC[6]);		//부사
+					contain = strstr(sub2_p, wordC[7]);		//부사
 					if (contain != NULL) {
 						j = 2;
 						goto s0;
 					}
 
-					contain = strstr(sub2_p, wordC[7]);		//화폐단위
+					contain = strstr(sub2_p, wordC[8]);		//화폐단위
 					if (contain != NULL) {
-						j = 2;
+						j = 5;
 						goto s0;
 					}
 
-					contain = strstr(sub2_p, wordC[8]);		//도량형단위
+					contain = strstr(sub2_p, wordC[9]);		//도량형단위
 					if (contain != NULL) {
-						j = 2;
+						j = 5;
 						goto s0;
 					}
 
-					contain = strstr(sub2_p, wordC[9]);		//수관형사
+					contain = strstr(sub2_p, wordC[10]);		//수관형사
 					if (contain != NULL) {
 						j = 3;
 						goto s0;
 					}
 
-					contain = strstr(sub2_p, wordC[10]);		//동사
+					contain = strstr(sub2_p, wordC[11]);		//동사화접미사
+					if (contain != NULL) {
+						j = 6;
+						goto s0;
+					}
+
+					contain = strstr(sub2_p, wordC[12]);		//동사
 					if (contain != NULL) {
 						j = 4;
 						goto s0;
@@ -220,12 +261,16 @@ void corp2word(const char *path, const char *filename) {
 						strcat(result, sub3_p);
 					}
 					else if (j == 3) {
+						if (number)	strcat(result, " ");		//11개/수관형사+23개/수관형사 -> nn 개
+						number_deter = false;					//11개/수관형사 -> nn 개
 						k = 0;
 						for (i = 0; i < strlen(sub3_p); i++) {
 							if (sub3_p[i] - 48 >= 0 && sub3_p[i] - 48 <= 9) {
 								if (k < 5) {
 									strcat(result, "n");
 									k++;
+									number = true;
+									number_deter = true;
 								}
 							}
 							else if (sub3_p[i] == '.') {
@@ -236,32 +281,40 @@ void corp2word(const char *path, const char *filename) {
 							}
 							else {
 								ctemp[0] = sub3_p[i++];
-								ctemp[1] = sub3_p[i];
+								ctemp[1] = sub3_p[i++];
+								ctemp[2] = sub3_p[i++];
+								if (number_deter)	strcat(result, " ");
 								strcat(result, ctemp);
+								break;								//232명2323 => 232 명
 							}
 						}
 					}
 					else if (j == 4) {
-						contain = strstr(sub2_p, wordC[11]);		//동사화접미사
-						if (contain != NULL) {
+						if (noun) {
 							strcat(temp, "+");
 							strcat(temp, sub3_p);
 							details = true;
 						}
-						else {
-							strcat(result, sub3_p);
-							break;
-						}
+						strcat(result, sub3_p);
+						break;
+					}
+					else if (j == 5) {
+						if (number) strcat(result, " ");
+						strcat(result, sub3_p);
+					}
+					else if (j == 6) {
+						strcat(result, wordC[13]);
+						break;
 					}
 
 					sub2_p = strtok_r(NULL, "+", &sub2_sp);
 				}
 
-				if (details) {
-					strcat(result, "(");
-					strcat(result, temp);
-					strcat(result, ")");
-				}
+				//if (details) {
+				//	strcat(result, "(");
+				//	strcat(result, temp);
+				//	strcat(result, ")");
+				//}
 
 				if (strcmp(result, "") != 0) {
 					fprintf(word, "%s ", result);
