@@ -70,7 +70,7 @@ bool corp2word_init(const char *filename) {
 		printf(" 2. :set fileencoding=utf-8\n");
 		printf(" 3. :wq\n\n");
 		wordclass = fopen("wordclass", "w");
-		fprintf(wordclass, "정성어미\n");
+		fprintf(wordclass, "전성어미\n");
 		fprintf(wordclass, "조사\n");
 		fprintf(wordclass, "명사\n");
 		fprintf(wordclass, "단위성의존명사\n");
@@ -101,7 +101,7 @@ bool corp2word_init(const char *filename) {
 		printf(" 2. :set fileencoding=utf-8\n");
 		printf(" 3. :wq\n\n");
 		wordclass = fopen("wordclass", "w");
-		fprintf(wordclass, "정성어미\n");
+		fprintf(wordclass, "전성어미\n");
 		fprintf(wordclass, "조사\n");
 		fprintf(wordclass, "단위성의존명사\n");
 		fprintf(wordclass, "명사\n");
@@ -174,10 +174,10 @@ void corp2word(const char *path, const char *filename) {
 				while (sub2_p != NULL) {						//Example '동아대/고유명사/116'
 					j = 0;
 					contain = strstr(sub2_p, wordC[0]);		//전성어미
-					if (contain != NULL) goto s0;
+					if (contain != NULL)  goto s0 ;
 
 					contain = strstr(sub2_p, wordC[1]);		//조사
-					if (contain != NULL) goto s0;
+					if (contain != NULL)  goto s0 ;
 
 					contain = strstr(sub2_p, wordC[2]);		//단위성의존명사
 					if (contain != NULL) {
@@ -261,14 +261,12 @@ void corp2word(const char *path, const char *filename) {
 						strcat(result, sub3_p);
 					}
 					else if (j == 3) {
-						if (number)	strcat(result, " ");		//11개/수관형사+23개/수관형사 -> nn 개
-						number_deter = false;					//11개/수관형사 -> nn 개
-						k = 0;
+						if (number)	strcat(result, " ");		//11개/수관형사+23개/수관형사 -> n 개
+						number_deter = false;					//11개/수관형사 -> n 개
 						for (i = 0; i < strlen(sub3_p); i++) {
 							if (sub3_p[i] - 48 >= 0 && sub3_p[i] - 48 <= 9) {
-								if (k < 5) {
+								if (!number_deter) {
 									strcat(result, "n");
-									k++;
 									number = true;
 									number_deter = true;
 								}
@@ -280,12 +278,13 @@ void corp2word(const char *path, const char *filename) {
 								//none
 							}
 							else {
+								number = true;
 								ctemp[0] = sub3_p[i++];
 								ctemp[1] = sub3_p[i++];
 								ctemp[2] = sub3_p[i++];
 								if (number_deter)	strcat(result, " ");
 								strcat(result, ctemp);
-								break;								//232명2323 => 232 명
+								break;								//232명2323 => n 명
 							}
 						}
 					}
