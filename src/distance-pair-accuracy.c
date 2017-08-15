@@ -8,17 +8,28 @@ const long long max_width = 50; 		 // max length of word alphabet
 
 int main(int argc, char **argv) {
 	FILE *vectorFile, *testFile, *outputFile;
-	char filename[100];
+	bool option, found;
+	char ch, filename[100], data[2][20];
+	char *vocab;
 	float dist, len, vec[max_size], programRate;
+	float survey_result, accuracySum = 0.0, accuracy = 0.0;
+	float *Vectors;
 	long long words, vectorLen, wordNum[100];
 	long long a, b;			//loof index
-	char ch;
-	float *Vectors;
-	char *vocab;
-
+	int testNum = 0, allNum = 0;
+	
 	//Parameter Check
-	if (argc < 4) {
-		printf("Usage: ./pair_distance <Vector File> <Test File> <Output File>\n\n");
+	if (argc == 3 || argc == 5) {
+		option = false;
+		if (argc == 5) {
+			if (strcmp(argv[3], "-o")==0) {
+				option = true;
+			}
+		}
+	}
+	else {
+		printf("Usage: ./pair_distance <Vector File> <Test File> -o <Output File>\n");
+		printf("Output File is Option. You don't need to use it.\n\n");
 		return 0;
 	}
 
@@ -26,24 +37,29 @@ int main(int argc, char **argv) {
 	strcpy(filename, argv[1]);
 	vectorFile = fopen(filename, "rb");		//read binary
 	if (vectorFile == NULL) {
-		printf("vector file not found\n");
+		printf("<Vector File> not found\n");
+		printf("Usage: ./pair_distance <Vector File> <Test File> -o <Output File>\n");
+		printf("Output File is Option. You don't need to use it.\n\n");
 		return -1;
 	}
 
 	strcpy(filename, argv[2]);
 	testFile = fopen(filename, "r");
 	if (testFile == NULL) {
-		printf("test file not found\n");
+		printf("<Test File> not found\n");
+		printf("Usage: ./pair_distance <Vector File> <Test File> -o <Output File>\n");
+		printf("Output File is Option. You don't need to use it.\n\n");
 		return -1;
 	}
 
-	strcpy(filename, argv[3]);
+	strcpy(filename, argv[4]);
 	outputFile = fopen(filename, "w");
 	if (outputFile == NULL) {
-		printf("output file not create\n");
+		printf("<Test File> not found\n");
+		printf("Usage: ./pair_distance <Vector File> <Test File> -o <Output File>\n");
+		printf("Output File is Option. You don't need to use it.\n\n");
 		return -1;
 	}
-	fprintf(outputFile, "word\tvocabNum\tword\tvocabNum\tservey\tdistance\matching rate\n");
 
 	fscanf(vectorFile, "%lld", &words);						//%lld long long Data
 	fscanf(vectorFile, "%lld", &vectorLen);
@@ -65,13 +81,10 @@ int main(int argc, char **argv) {
 	}
 	fclose(vectorFile);
 
-	char data[2][20];
-	float data3, accuracySum = 0.0, accuracy = 0.0;
-	int testNum = 0, allNum = 0;
-	bool found;
 	//Loop Main Function
+	if(option) fprintf(outputFile, "word\tvocabNum\tword\tvocabNum\tservey\tdistance\tmatching rate\n");
 	while (!feof(testFile)) {
-		fscanf(testFile, "%s\t%s\t%f", &data[0][0], &data[1][0], &data3);
+		fscanf(testFile, "%s\t%s\t%f", &data[0][0], &data[1][0], &survey_result);
 		found = true;
 		allNum++;
 		//Get Number of two Words in vocabulary
@@ -85,7 +98,7 @@ int main(int argc, char **argv) {
 		}
 
 		if (!found) {
-			fprintf(outputFile, "%s\t%lld\t%s\t%lld\t%.4f\t%.4f\t%.4f(%%)\n", &data[0][0], wordNum[0], &data[1][0], wordNum[1], data3, 0.00, 0.00);
+			if (option)	fprintf(outputFile, "%s\t%lld\t%s\t%lld\t%.4f\t%.4f\t%.4f(%%)\n", &data[0][0], wordNum[0], &data[1][0], wordNum[1], survey_result, 0.00, 0.00);
 		}
 		else {
 			accuracy = 0;
@@ -103,27 +116,27 @@ int main(int argc, char **argv) {
 			for (a = 0; a < vectorLen; a++) dist += vec[a] * Vectors[a + wordNum[1] * vectorLen];
 			dist = fabs(dist);
 			dist *= 10;
-			accuracy = 100 - (fabs(dist - data3) * 10);
+			if (dist > survey_result) accuracy = 100 - ((dist - survey_result) * 100 / dist);
+			else accuracy = 100 - ((survey_result - dist) * 100 / survey_result);
+			
 			accuracySum += accuracy;
-			fprintf(outputFile, "%s\t%lld\t%s\t%lld\t%.4f\t%.4f\t%.4f(%%)\n", &data[0][0], wordNum[0], &data[1][0], wordNum[1], data3, dist, accuracy);
+			if (option) fprintf(outputFile, "%s\t%lld\t%s\t%lld\t%.4f\t%.4f\t%.4f(%%)\n", &data[0][0], wordNum[0], &data[1][0], wordNum[1], survey_result, dist, accuracy);
 		}
 	}
 	programRate = testNum * 100;
 	programRate = programRate / allNum;
-	fprintf(outputFile,"\nNumber of All Questions in Survey : %d\n", allNum);
-	printf("\nNumber of All Questions in Survey : %d\n", allNum);
 	
-	fprintf(outputFile, "Number of Calculated Questions in Survey : %d\n", testNum);
-	printf("Number of Calculated Questions in Survey : %d\n", testNum);
-
-	fprintf(outputFile, "Program Execution Rate : %.4f(%%)\n", programRate);
-	printf("Program Execution Rate : %.4f(%%)\n", programRate);
+	if (option) {
+		fprintf(outputFile, "\nRate of Calculated Questions : %.2f%% (%d/%d)\n", programRate, testNum, allNum);
+		fprintf(outputFile, "Average matching rate of All Questions : %.2lf%%\n", accuracySum / allNum);
+		fprintf(outputFile, "Average matching rate of Calculated Questions : %.2lf%%", accuracySum / testNum);
+		fclose(outputFile);
+	}
 	
-	fprintf(outputFile, "Average matching rate of All Questions : %.4lflf(%%)\n", ((allNum-testNum) * 100 + accuracySum) / allNum);
-	printf("Average matching rate of All Questions: %.4lf(%%)\n", ((allNum - testNum) * 100 + accuracySum) / allNum);
-
-	fprintf(outputFile, "Average matching rate of Calculated Questions : %.4lf(%%)\n", accuracySum / testNum);
-	printf("Average matching rate of Calculated Questions: %.4lf(%%)\n", accuracySum / testNum);
+	printf("Rate of Calculated Questions : %.2f%% (%d/%d)\n", programRate, testNum, allNum);
+	printf("Average matching rate of All Questions : %.2lf%%\n", accuracySum / allNum);
+	printf("Average matching rate of Calculated Questions : %.2lf%%\n\n", accuracySum / testNum);
+	fclose(testFile);
 	return 0;
 }
 		
