@@ -21,7 +21,7 @@ const long long max_w = 50;              // max length of vocabulary entries
 const int exampleOfProblem = 4;
 const int lineOfProblem = 5;
 const int maxWordInLine = 20;
-int totalNumOfProblem = 0;           // modify if you append your data
+int totalNumOfProblem = 0;           // total data number
 const int maxNumOfProblem = 300;
 bool output = false;
 int main(int argc, char **argv) {
