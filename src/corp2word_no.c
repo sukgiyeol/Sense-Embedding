@@ -131,8 +131,8 @@ bool corp2word_init(const char *filename) {
 void corp2word(const char *path, const char *filename) {
 	FILE *corp;
 	char name[100];
-	int i, j, k;
-	char line[buf], subLine[buf];
+	int i, j;
+	char line[buf];
 	char *main_p, *sub_p, *sub2_p, *sub3_p;
 	char *main_sp, *sub_sp, *sub2_sp, *sub3_sp;
 	char *main_temp, *sub_temp, *sub2_temp;
