@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 	bool option, found;
 	char ch, filename[100], data[2][20];
 	char *vocab;
-	float dist, len, vec[max_size], programRate;
+	float dist, len, vec[max_size];
 	float survey_result, accuracySum = 0.0, accuracy = 0.0;
 	float *Vectors;
 	long long words, vectorLen, wordNum[100];
@@ -28,7 +28,8 @@ int main(int argc, char **argv) {
 		}
 	}
 	else {
-		printf("Usage: ./pair_distance <Vector File> <Test File> -o <Output File>\n");
+		printf("Usage: ./distance-pair-accuracy <Vector File> <Test File> -o <Output File>\n");
+		printf("Vector File contains word projections in the Binary Format.\n");
 		printf("Output File is Option. You don't need to use it.\n\n");
 		return 0;
 	}
@@ -38,7 +39,8 @@ int main(int argc, char **argv) {
 	vectorFile = fopen(filename, "rb");		//read binary
 	if (vectorFile == NULL) {
 		printf("<Vector File> not found\n");
-		printf("Usage: ./pair_distance <Vector File> <Test File> -o <Output File>\n");
+		printf("Usage: ./distance-pair-accuracy <Vector File> <Test File> -o <Output File>\n");
+		printf("Vector File contains word projections in the Binary Format.\n");
 		printf("Output File is Option. You don't need to use it.\n\n");
 		return -1;
 	}
@@ -47,18 +49,22 @@ int main(int argc, char **argv) {
 	testFile = fopen(filename, "r");
 	if (testFile == NULL) {
 		printf("<Test File> not found\n");
-		printf("Usage: ./pair_distance <Vector File> <Test File> -o <Output File>\n");
+		printf("Usage: ./distance-pair-accuracy <Vector File> <Test File> -o <Output File>\n");
+		printf("Vector File contains word projections in the Binary Format.\n");
 		printf("Output File is Option. You don't need to use it.\n\n");
 		return -1;
 	}
 
-	strcpy(filename, argv[4]);
-	outputFile = fopen(filename, "w");
-	if (outputFile == NULL) {
-		printf("<Test File> not found\n");
-		printf("Usage: ./pair_distance <Vector File> <Test File> -o <Output File>\n");
-		printf("Output File is Option. You don't need to use it.\n\n");
-		return -1;
+	if (option) {
+		strcpy(filename, argv[4]);
+		outputFile = fopen(filename, "w");
+		if (outputFile == NULL) {
+			printf("<Output File> not found\n");
+			printf("Usage: ./distance-pair-accuracy <Vector File> <Test File> -o <Output File>\n");
+			printf("Vector File contains word projections in the Binary Format.\n");
+			printf("Output File is Option. You don't need to use it.\n\n");
+			return -1;
+		}
 	}
 
 	fscanf(vectorFile, "%lld", &words);						//%lld long long Data
@@ -123,19 +129,17 @@ int main(int argc, char **argv) {
 			if (option) fprintf(outputFile, "%s\t%lld\t%s\t%lld\t%.4f\t%.4f\t%.4f(%%)\n", &data[0][0], wordNum[0], &data[1][0], wordNum[1], survey_result, dist, accuracy);
 		}
 	}
-	programRate = testNum * 100;
-	programRate = programRate / allNum;
-	
+
 	if (option) {
-		fprintf(outputFile, "\nRate of Calculated Questions : %.2f%% (%d/%d)\n", programRate, testNum, allNum);
-		fprintf(outputFile, "Average matching rate of All Questions : %.2lf%%\n", accuracySum / allNum);
-		fprintf(outputFile, "Average matching rate of Calculated Questions : %.2lf%%", accuracySum / testNum);
+		fprintf(outputFile, "\nCalculated Questions Rate of All Questions : %.2f%% (%d/%d)\n", testNum / (float)allNum * 100, testNum, allNum);
+		fprintf(outputFile, "Average matching rate of All Questions : %.2lf%% (%d/%d)\n", accuracySum / allNum);
+		fprintf(outputFile, "Average matching rate of Calculated Questions : %.2lf%% (%d/%d)", accuracySum / testNum);
 		fclose(outputFile);
 	}
 	
-	printf("Rate of Calculated Questions : %.2f%% (%d/%d)\n", programRate, testNum, allNum);
-	printf("Average matching rate of All Questions : %.2lf%%\n", accuracySum / allNum);
-	printf("Average matching rate of Calculated Questions : %.2lf%%\n\n", accuracySum / testNum);
+	printf("Calculated Questions Rate of All Questions : %.2f%% (%d/%d)\n", testNum / (float)allNum * 100, testNum, allNum);
+	printf("Average matching rate of All Questions : %.2lf%% (%d/%d)\n", accuracySum / allNum);
+	printf("Average matching rate of Calculated Questions : %.2lf%% (%d/%d)\n\n", accuracySum / testNum);
 	fclose(testFile);
 	return 0;
 }
