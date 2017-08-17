@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
                                 break;
                         }
                 }
-
+                if (bIndex == -1) continue;
                 for (aIndex = 0; aIndex < exampleOfProblem; aIndex++) {
                         for (bIndex = 0; bIndex < totalWordNum; bIndex++) if (!strcmp(&vocab[bIndex * max_w], exampleList[aIndex])) break;
                         if (bIndex == totalWordNum) bIndex = -1;
