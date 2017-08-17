@@ -39,7 +39,7 @@ char save_vocab_file[MAX_STRING], read_vocab_file[MAX_STRING];
 struct vocab_word *vocab;
 int binary = 0, cbow = 0, debug_mode = 2, window = 5, min_count = 5, num_threads = 1, min_reduce = 1;
 int *vocab_hash;
-long long vocab_max_size = 1000, vocab_limit_size = 200000, vocab_size = 0, layer1_size = 100;
+long long vocab_max_size = 1000, vocab_limit_size = 99999999, vocab_size = 0, layer1_size = 100;
 long long train_words = 0, word_count_actual = 0, file_size = 0, classes = 0;
 real alpha = 0.025, starting_alpha, sample = 0;
 real *syn0, *syn1, *syn1neg, *expTable;
@@ -693,7 +693,7 @@ int main(int argc, char **argv) {
     printf("\t-window <int>\n");
     printf("\t\tSet max skip length between words; default is 5\n");
 	printf("\t-vocab-size <int>\n");
-	printf("\t\tSet max vocabulary size; default is 200000\n");
+	printf("\t\tSet max vocabulary size; default is 99999999\n");
     printf("\t-sample <float>\n");
     printf("\t\tSet threshold for occurrence of words. Those that appear with higher frequency");
     printf(" in the training data will be randomly down-sampled; default is 0 (off), useful value is 1e-5\n");

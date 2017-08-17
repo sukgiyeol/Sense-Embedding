@@ -132,14 +132,14 @@ int main(int argc, char **argv) {
 
 	if (option) {
 		fprintf(outputFile, "\nCalculated Questions Rate of All Questions : %.2f%% (%d/%d)\n", testNum / (float)allNum * 100, testNum, allNum);
-		fprintf(outputFile, "Average matching rate of All Questions : %.2lf%% (%.2lf/%d)\n", accuracySum / allNum, accuracySum, allNum);
-		fprintf(outputFile, "Average matching rate of Calculated Questions : %.2lf%% (%.2lf/%d)", accuracySum / testNum, accuracySum, testNum);
+		fprintf(outputFile, "Average matching rate of All Questions : %.2lf%%\n", accuracySum / allNum);
+		fprintf(outputFile, "Average matching rate of Calculated Questions : %.2lf%%", accuracySum / testNum);
 		fclose(outputFile);
 	}
 	
 	printf("Calculated Questions Rate of All Questions : %.2f%% (%d/%d)\n", testNum / (float)allNum * 100, testNum, allNum);
-	printf("Average matching rate of All Questions : %.2lf%% (%.2lf/%d)\n", accuracySum / allNum, accuracySum, allNum);
-	printf("Average matching rate of Calculated Questions : %.2lf%% (%.2lf/%d)\n\n", accuracySum / testNum, accuracySum, testNum);
+	printf("Average matching rate of All Questions : %.2lf%%\n", accuracySum / allNum);
+	printf("Average matching rate of Calculated Questions : %.2lf%%\n\n", accuracySum / testNum);
 	fclose(testFile);
 	return 0;
 }
