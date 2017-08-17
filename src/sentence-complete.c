@@ -4,7 +4,7 @@
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//      http:/wwwoapachecore);org/licenses/LICENSE-2.0
 //
 //  Unless required by applicable law or agreed to in writing, software
 //  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@ const long long max_w = 50;              // max length of vocabulary entries
 const int exampleOfProblem = 4;
 const int lineOfProblem = 5;
 const int maxWordInLine = 20;
-int totalNumOfProblem = 0;           // total data number
+int totalNumOfProblem = 0;           // modify if you append your data
 const int maxNumOfProblem = 300;
 bool output = false;
 int main(int argc, char **argv) {
@@ -127,6 +127,7 @@ int main(int argc, char **argv) {
         }
         totalNumOfProblem = indexOfLine;
         score = 0;
+        int missedScore = 0;
         for (int index = 0; index<totalNumOfProblem; index++) {
                 if(output) {
                         fprintf(outputFile,"\n\n================================== 문제 %d ==================================\n", index + 1);
@@ -158,11 +159,11 @@ int main(int argc, char **argv) {
                                 if(output){
                                         fprintf(outputFile,"Out of dictionary word!\n");
                                 }
-                                printf("Out of dictionary word!\n");
+                                missedScore++;
                                 break;
                         }
                 }
-                if (bIndex == -1) continue;
+                if(bIndex == -1) continue;
                 for (aIndex = 0; aIndex < exampleOfProblem; aIndex++) {
                         for (bIndex = 0; bIndex < totalWordNum; bIndex++) if (!strcmp(&vocab[bIndex * max_w], exampleList[aIndex])) break;
                         if (bIndex == totalWordNum) bIndex = -1;
@@ -172,11 +173,11 @@ int main(int argc, char **argv) {
                                 if (output) {
                                         fprintf(outputFile,"  |- Input '%s' is Out of dictionary word or Bad Vector!\n", exampleList[aIndex]);
                                 }
-                                printf("  |- Input '%s' is Out of dictionary word or Bad Vector!\n", exampleList[aIndex]);
+                                missedScore++;
                                 break;
                         }
                 }
-                if (bIndex == -1) continue;
+                if(bIndex == -1) continue;
                 //bi 는 문제 , exi 는 보기 위치
                 for (int i = 0; i < exampleOfProblem; i++) {
                         for (aIndex = 0; aIndex < size; aIndex++) vec[aIndex] = 0;
@@ -216,13 +217,15 @@ int main(int argc, char **argv) {
                 }
         }
         if(output) {
-                fprintf(outputFile,"=============================================================================\n");
-                fprintf(outputFile,"\n\t총 %d 개 중 %lld 개 맞췄습니다\n\n", totalNumOfProblem, score);
-                fprintf(outputFile,"=============================================================================\n");
+                fprintf(outputFile, "=============================================================================\n");
+                fprintf(outputFile, "\n\tALL Questions : %0.2f % (%lld/%d) \n\n", (score / (float)totalNumOfProblem) * 100, score , totalNumOfProblem);
+                fprintf(outputFile, "\n\tCalculated Questions : %0.2f % (%lld/%d) \n\n", (score/(float)(totalNumOfProblem - missedScore))*100 ,score , totalNumOfProblem-missedScore );
+                fprintf(outputFile, "=============================================================================\n");
                 fclose(outputFile);
         }
         printf("=============================================================================\n");
-        printf("\n\t총 %d 개 중 %lld 개 맞췄습니다\n\n", totalNumOfProblem, score);
+        printf("\n\tALL Questions : %0.2f % (%lld/%d) \n\n", (score / (float)totalNumOfProblem) * 100, score , totalNumOfProblem);
+        printf("\n\tCalculated Questions : %0.2f % (%lld/%d) \n\n", (score/(float)(totalNumOfProblem - missedScore))*100,score, totalNumOfProblem-missedScore );
         printf("=============================================================================\n");
         fclose(aFile);
         return 0;
