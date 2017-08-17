@@ -222,7 +222,6 @@ void ReduceVocab() {
 // Create binary Huffman tree using the word counts
 // Frequent words will have short uniqe binary codes
 void CreateBinaryTree() {
-	printf("^^start CreateBinaryTree\n");
   long long a, b, i, min1i, min2i, pos1, pos2, point[MAX_CODE_LENGTH];
   char code[MAX_CODE_LENGTH];
   long long *count = (long long *)calloc(vocab_size * 2 + 1, sizeof(long long));
@@ -285,7 +284,6 @@ void CreateBinaryTree() {
   free(count);
   free(binary);
   free(parent_node);
-  printf("^^end CreateBinaryTree\n");
 }
 
 void LearnVocabFromTrainFile() {
@@ -316,15 +314,13 @@ void LearnVocabFromTrainFile() {
     if (vocab_size > vocab_hash_size * 0.7) ReduceVocab();
   }
   SortVocab();
-  printf("^^end SortVocab\n");
   if (debug_mode > 0) {
     printf("Vocab size: %lld\n", vocab_size);
     printf("Words in train file: %lld\n", train_words);
-	printf("^^end debug_mode\n");
   }
   file_size = ftell(fin);
   fclose(fin);
-  printf("^^end LearnVocabFromTrainFile\n");
+  
 }
 
 void SaveVocab() {
@@ -368,7 +364,6 @@ void ReadVocab() {
 }
 
 void InitNet() {
-	printf("^^start IniNet\n");
   long long a, b;
   a = posix_memalign((void **)&syn0, 128, (long long)vocab_size * layer1_size * sizeof(real));
   if (syn0 == NULL) {printf("Memory allocation failed\n"); exit(1);}
@@ -387,7 +382,6 @@ void InitNet() {
   for (b = 0; b < layer1_size; b++) for (a = 0; a < vocab_size; a++)
    syn0[a * layer1_size + b] = (rand() / (real)RAND_MAX - 0.5) / layer1_size;
   CreateBinaryTree();
-  printf("^^end IniNet\n");
 }
 
 void DestroyNet() {
@@ -403,7 +397,6 @@ void DestroyNet() {
 }
 
 void *TrainModelThread(void *id) {
-	printf("^^start TrainModelThread\n");
   long long a, b, d, word, last_word, sentence_length = 0, sentence_position = 0;
   long long word_count = 0, last_word_count = 0, sen[MAX_SENTENCE_LENGTH + 1];
   long long l1, l2, c, target, label;
