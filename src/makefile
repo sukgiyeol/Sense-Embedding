@@ -4,12 +4,12 @@ BIN_DIR=../bin
 CC = gcc
 CFLAGS = -lm -pthread -O2 -Wall -funroll-loops -Wno-unused-result
 
-all: corp2word word2vec distance distance-pair distance-pair-accuracy sentence-complete word-analogy word-analogy-accuracy
+all: corp2word sense2vec distance distance-pair distance-pair-accuracy sentence-complete word-analogy word-analogy-accuracy
 
 corp2word : corp2word_no.c
 	$(CC) corp2word_no.c -o ${BIN_DIR}/corp2word $(CFLAGS)
-word2vec : word2vec_ko.c
-	$(CC) word2vec_ko.c -o ${BIN_DIR}/word2vec $(CFLAGS)
+sense2vec : sense2vec.c
+	$(CC) sense2vec.c -o ${BIN_DIR}/sense2vec $(CFLAGS)
 distance : distance.c
 	$(CC) distance.c -o ${BIN_DIR}/distance $(CFLAGS)
 distance-pair : distance-pair.c
@@ -24,4 +24,4 @@ word-analogy-accuracy: word-analogy-accuracy.c
 	$(CC) word-analogy-accuracy.c -o ${BIN_DIR}/word-analogy-accuracy $(CFLAGS)
 	chmod +x ${SCRIPTS_DIR}/*.sh
 clean:
-	pushd ${BIN_DIR} && rm -rf corp2word word2vec distance distance-pair distance-pair-accuracy sentence-complete word-analogy word-analogy-accuracy; popd
+	pushd ${BIN_DIR} && rm -rf corp2word sense2vec distance distance-pair distance-pair-accuracy sentence-complete word-analogy word-analogy-accuracy; popd

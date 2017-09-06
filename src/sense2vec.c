@@ -36,16 +36,18 @@ struct vocab_word {
 
 char train_file[MAX_STRING], output_file[MAX_STRING];
 char save_vocab_file[MAX_STRING], read_vocab_file[MAX_STRING];
+char primary_file[MAX_STRING];
 struct vocab_word *vocab;
-int binary = 0, cbow = 0, debug_mode = 2, window = 5, min_count = 5, num_threads = 1, min_reduce = 1;
+int binary = 0, cbow = 0, debug_mode = 2, window = 5, min_count = 5, num_threads = 1, min_reduce = 1, hybrid = 0;
 int *vocab_hash;
 long long vocab_max_size = 1000, vocab_limit_size = 99999999, vocab_size = 0, layer1_size = 100;
-long long train_words = 0, word_count_actual = 0, file_size = 0, classes = 0;
+long long train_words = 0, word_count_actual = 0, file_size = 0, classes = 0, primary_size;
 real alpha = 0.025, starting_alpha, sample = 0;
 real *syn0, *syn1, *syn1neg, *expTable;
 clock_t start;
 
 int hs = 1, negative = 0;
+
 const int table_size = 1e8;
 int *table;
 
@@ -168,14 +170,46 @@ void DestroyVocab() {
 void SortVocab() {
 	long long a, size, count;
 	unsigned int hash;
-	// Sort the vocabulary and keep </s> at the first position
-	qsort(&vocab[1], vocab_size - 1, sizeof(struct vocab_word), VocabCompare);
+
 	for (a = 0; a < vocab_hash_size; a++) vocab_hash[a] = -1;
-	size = vocab_size;
+	size = primary_size + 1;
 	train_words = 0;
 	count = 2;
-	for (a = 1; a < size; a++) { // Skip </s>
-								 // Words occuring less than min_count times will be discarded from the vocab
+	a = 1;
+	// Sort the vocabulary and keep </s> at the first position
+	if (read_vocab_file[0] == 0) {
+		if (primary_file[0] != 0) {
+			printf("primary word size : %d\n", primary_size-1);
+			qsort(&vocab[1], primary_size + 1, sizeof(struct vocab_word), VocabCompare);
+			for (; a < size; a++) { // Skip </s>
+				vocab[a].cn -= 11111;
+				// Words occuring less than min_count times will be discarded from the vocab
+				if (vocab[a].cn == 0) {
+					primary_size--;
+				}
+				else {
+					// Hash will be re-computed, as after the sorting it is not actual
+					hash = GetWordHash(vocab[a].word);
+					while (vocab_hash[hash] != -1) hash = (hash + 1) % vocab_hash_size;
+					vocab_hash[hash] = a;
+					train_words += vocab[a].cn;
+					count++;
+				}
+			}
+			printf("added primary word in vocabulary : %d\n", primary_size);
+			a = primary_size + 1;
+			qsort(&vocab[primary_size + 1], vocab_size - primary_size - 1, sizeof(struct vocab_word), VocabCompare);
+		}
+		else { 
+			qsort(&vocab[1], vocab_size - 1, sizeof(struct vocab_word), VocabCompare); 
+		}
+	}
+	else { 
+		qsort(&vocab[1], vocab_size - 1, sizeof(struct vocab_word), VocabCompare); 
+	}
+	size = vocab_size;
+	for ( ; a < size; a++) { // Skip </s>
+		 // Words occuring less than min_count times will be discarded from the vocab
 		if (count > vocab_limit_size || vocab[a].cn < min_count) {
 			vocab_size--;
 			free(vocab[a].word);
@@ -221,7 +255,7 @@ void ReduceVocab() {
 }
 
 // Create binary Huffman tree using the word counts
-// Frequent words will have short uniqe binary codes
+// Frequent words will have short uniqe binary codes 
 void CreateBinaryTree() {
 	long long a, b, i, min1i, min2i, pos1, pos2, point[MAX_CODE_LENGTH];
 	char code[MAX_CODE_LENGTH];
@@ -293,7 +327,7 @@ void CreateBinaryTree() {
 
 void LearnVocabFromTrainFile() {
 	char word[MAX_STRING];
-	FILE *fin;
+	FILE *fin,*sen;
 	long long a, i;
 	for (a = 0; a < vocab_hash_size; a++) vocab_hash[a] = -1;
 	fin = fopen(train_file, "rb");
@@ -301,8 +335,29 @@ void LearnVocabFromTrainFile() {
 		printf("ERROR: training data file not found!\n");
 		exit(1);
 	}
+	
 	vocab_size = 0;
 	AddWordToVocab((char *)"</s>");
+	if (primary_file[0] != 0){
+		sen = fopen(primary_file, "rb");
+		if (sen == NULL) {
+			printf("ERROR: primary word list file not found!\n");
+			exit(1);
+		}
+		primary_size = 0;
+		while (1) {
+			if (feof(sen)) break;
+			ReadWord(word, sen);
+			i = SearchVocab(word);
+			if (i == -1) {
+				a = AddWordToVocab(word);
+				vocab[a].cn = 11111;		//To avoid Function 'ReduceVocab()'
+				primary_size++;
+			}
+		}
+		fclose(sen);
+	}
+
 	while (1) {
 		ReadWord(word, fin);
 		if (feof(fin)) break;
@@ -313,10 +368,18 @@ void LearnVocabFromTrainFile() {
 		}
 		i = SearchVocab(word);
 		if (i == -1) {
-			a = AddWordToVocab(word);
-			vocab[a].cn = 1;
+			if (primary_file[0] != 0) {
+				if (hybrid) {
+					a = AddWordToVocab(word);
+					vocab[a].cn = 1;
+				}
+			}
+			else {
+				a = AddWordToVocab(word);
+				vocab[a].cn = 1;
+			}
 		}
-		else vocab[i].cn++;
+		else  vocab[i].cn++; 
 		if (vocab_size > vocab_hash_size * 0.7) ReduceVocab();
 	}
 	SortVocab();
@@ -589,6 +652,7 @@ void TrainModel() {
 	starting_alpha = alpha;
 	if (read_vocab_file[0] != 0) ReadVocab(); else LearnVocabFromTrainFile();
 	if (save_vocab_file[0] != 0) SaveVocab();
+	
 	if (output_file[0] == 0) return;
 	InitNet();
 	if (negative > 0) InitUnigramTable();
@@ -690,6 +754,8 @@ int main(int argc, char **argv) {
 		printf("\t\tUse text data from <file> to train the model\n");
 		printf("\t-output <file>\n");
 		printf("\t\tUse <file> to save the resulting word vectors / word clusters\n");
+		printf("\t-primary <file>\n");
+		printf("\t\tUse <file> to make primary word in vocab list\n");
 		printf("\t-size <int>\n");
 		printf("\t\tSet size of word vectors; default is 100\n");
 		printf("\t-vocab-size <int>\n");
@@ -701,6 +767,8 @@ int main(int argc, char **argv) {
 		printf(" in the training data will be randomly down-sampled; default is 0 (off), useful value is 1e-5\n");
 		printf("\t-hs <int>\n");
 		printf("\t\tUse Hierarchical Softmax; default is 1 (0 = not used)\n");
+		printf("\t-hybrid <int>\n");
+		printf("\t\tMake Vocabulary using word in train text data and primary word list; default is 0 (= only use primary word)\n");
 		printf("\t-negative <int>\n");
 		printf("\t\tNumber of negative examples; default is 0, common values are 5 - 10 (0 = not used)\n");
 		printf("\t-threads <int>\n");
@@ -728,6 +796,8 @@ int main(int argc, char **argv) {
 	output_file[0] = 0;
 	save_vocab_file[0] = 0;
 	read_vocab_file[0] = 0;
+	primary_file[0] = 0;
+	if ((i = ArgPos((char *)"-hybrid", argc, argv)) > 0) hybrid = atoi(argv[i + 1]);
 	if ((i = ArgPos((char *)"-size", argc, argv)) > 0) layer1_size = atoi(argv[i + 1]);
 	if ((i = ArgPos((char *)"-train", argc, argv)) > 0) strcpy(train_file, argv[i + 1]);
 	if ((i = ArgPos((char *)"-save-vocab", argc, argv)) > 0) strcpy(save_vocab_file, argv[i + 1]);
@@ -740,11 +810,14 @@ int main(int argc, char **argv) {
 	if ((i = ArgPos((char *)"-window", argc, argv)) > 0) window = atoi(argv[i + 1]);
 	if ((i = ArgPos((char *)"-sample", argc, argv)) > 0) sample = atof(argv[i + 1]);
 	if ((i = ArgPos((char *)"-hs", argc, argv)) > 0) hs = atoi(argv[i + 1]);
+	if ((i = ArgPos((char *)"-hybrid", argc, argv)) > 0) hybrid = atoi(argv[i + 1]);
 	if ((i = ArgPos((char *)"-negative", argc, argv)) > 0) negative = atoi(argv[i + 1]);
 	if ((i = ArgPos((char *)"-threads", argc, argv)) > 0) num_threads = atoi(argv[i + 1]);
 	if ((i = ArgPos((char *)"-vocab-size", argc, argv)) > 0) vocab_limit_size = atoi(argv[i + 1]);
 	if ((i = ArgPos((char *)"-min-count", argc, argv)) > 0) min_count = atoi(argv[i + 1]);
 	if ((i = ArgPos((char *)"-classes", argc, argv)) > 0) classes = atoi(argv[i + 1]);
+	if ((i = ArgPos((char *)"-primary", argc, argv)) > 0) strcpy(primary_file, argv[i + 1]);
+
 	vocab = (struct vocab_word *)calloc(vocab_max_size, sizeof(struct vocab_word));
 	vocab_hash = (int *)calloc(vocab_hash_size, sizeof(int));
 	expTable = (real *)malloc((EXP_TABLE_SIZE + 1) * sizeof(real));

@@ -6,11 +6,12 @@
 #include <dirent.h>
 
 #define buf 1024
-#define classNum 14
+#define classNum 15
 
 typedef enum { false, true } bool;
 void corp2word(const char *path, const char *filename);
 bool corp2word_init(const char *filename);
+bool compound;
 
 FILE *wordclass, *word;
 char wordC[classNum][25];
@@ -21,14 +22,18 @@ int main(int argc, char **argv) {
 	int fileNum = 0, currntNum = 0;
 
 	//Parameter Check
-	if (argc < 3)
-	{
-		printf("Usage: ./corp2vec <Corp Folder Path> <OutPut File Path>\n");
-		printf("Error!! Put the right Parameter\n");
-		printf("This Program get file data in folder you add and Parsing All file in folder.\n");
-		printf("Be careful about Putting Parameter(Not File Path)\n\n");
+	if (argc == 3 || argc == 4) {}
+	else {
+		printf("Usage: ./corp2vec <Corp Folder Path> <OutPut File Path> <Compound>\n");
+		printf("This Program get Corp Files in 'Folder'. so you input Folder Path into <Corp Folder Path>.\n");
+		printf("Option <Compound> divide Compoound noun into each noun. (0 or 1... default 0)\n");
+		printf("\tYou don't need to input parameter <Compoud>\n");
+		printf("\nExamples:\n");
 		return 0;
 	}
+	
+	if (argc == 4 && !strcmp(argv[3], "1")) compound = true; 
+	else	compound = false;
 
 	dir = opendir(argv[1]);
 	if (dir != NULL) {
@@ -72,8 +77,8 @@ bool corp2word_init(const char *filename) {
 		wordclass = fopen("wordclass", "w");
 		fprintf(wordclass, "전성어미\n");
 		fprintf(wordclass, "조사\n");
-		fprintf(wordclass, "명사\n");
 		fprintf(wordclass, "단위성의존명사\n");
+		fprintf(wordclass, "명사\n");
 		fprintf(wordclass, "외국어\n");
 		fprintf(wordclass, "서수사\n");
 		fprintf(wordclass, "형용사\n");
@@ -84,6 +89,7 @@ bool corp2word_init(const char *filename) {
 		fprintf(wordclass, "동사화접미사\n");
 		fprintf(wordclass, "동사\n");
 		fprintf(wordclass, "하다\n");
+		fprintf(wordclass, "온점");
 		fclose(wordclass);
 		return false;
 	}
@@ -115,6 +121,7 @@ bool corp2word_init(const char *filename) {
 		fprintf(wordclass, "동사화접미사\n");
 		fprintf(wordclass, "동사\n");
 		fprintf(wordclass, "하다\n");
+		fprintf(wordclass, "온점");
 		fclose(wordclass);
 		return false;
 	}
@@ -137,7 +144,7 @@ void corp2word(const char *path, const char *filename) {
 	char *main_sp, *sub_sp, *sub2_sp, *sub3_sp;
 	char *main_temp, *sub_temp, *sub2_temp;
 	char *contain;
-	bool noun, number, number_deter, details;					//verb
+	bool noun, number, number_deter, details, point;				
 	char result[buf], temp[buf], ctemp[3];
 
 	const size_t len1 = strlen(path);
@@ -164,20 +171,26 @@ void corp2word(const char *path, const char *filename) {
 			strcpy(result, "");
 			strcpy(temp, "");
 
-			noun = false;	//verb = false;
+			noun = false;	
 			number = false;
 			number_deter = false;
 			details = false;
+			point = false;
 			if (sub_p != NULL) {								//Example '동아대/고유명사/116+는/보조사/255'
 				sub_temp = sub_p;
 				sub2_p = strtok_r(sub_temp, "+", &sub2_sp);
 				while (sub2_p != NULL) {						//Example '동아대/고유명사/116'
 					j = 0;
+					contain = strstr(sub2_p, wordC[14]);		//온점
+					if (contain != NULL) {
+						j = 7;
+						goto s0;
+					}
 					contain = strstr(sub2_p, wordC[0]);		//전성어미
-					if (contain != NULL)  goto s0 ;
+					if (contain != NULL)  goto s0;
 
 					contain = strstr(sub2_p, wordC[1]);		//조사
-					if (contain != NULL)  goto s0 ;
+					if (contain != NULL)  goto s0;
 
 					contain = strstr(sub2_p, wordC[2]);		//단위성의존명사
 					if (contain != NULL) {
@@ -243,6 +256,8 @@ void corp2word(const char *path, const char *filename) {
 						goto s0;
 					}
 
+	
+
 				s0:
 					sub2_temp = sub2_p;
 					sub3_p = strtok_r(sub2_temp, "/", &sub3_sp);	//Example '동아대'
@@ -288,7 +303,7 @@ void corp2word(const char *path, const char *filename) {
 							}
 						}
 					}
-					else if (j == 4) {	
+					else if (j == 4) {
 						if (noun) {
 							strcat(temp, "+");
 							strcat(temp, sub3_p);
@@ -305,24 +320,28 @@ void corp2word(const char *path, const char *filename) {
 						strcat(result, wordC[13]);
 						break;
 					}
-
+					else if (j == 7) {
+						strcat(result, "\n");
+						point = true;
+						break;
+					}
 					sub2_p = strtok_r(NULL, "+", &sub2_sp);
 				}
 
-				if (details) {
+				if (details && compound) {
 					strcat(result, "(");
 					strcat(result, temp);
 					strcat(result, ")");
 				}
 
 				if (strcmp(result, "") != 0) {
-					fprintf(word, "%s ", result);
+					if(point) fprintf(word, "%s", result);
+					else fprintf(word, "%s ", result);
 				}
 
 			}
 			main_p = strtok_r(NULL, "	", &main_sp);
 		}
-		fprintf(word, "\n");
 	}
 	fclose(corp);
 
