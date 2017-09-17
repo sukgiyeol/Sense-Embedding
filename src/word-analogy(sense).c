@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
 	}
 	fclose(f);
 
-	if (argc > 2 && !strcmp("-k", argv[2])) {
+	if (argc > 2 && !strcmp("-s", argv[2])) {
 		senseFlag = true;                                            // flag mean korlex data use (sense vector input) @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		char data[50];
 		unsigned int length, hash;
