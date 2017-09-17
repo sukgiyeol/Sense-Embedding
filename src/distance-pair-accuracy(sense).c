@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
 	//Parameter Check
 	if (argc < 3) {
-		printf("Usage: ./distance-pair-accuracy <Vector File> <Test File> -o <Output File>\n");
+		printf("Usage: ./distance-pair-accuracy <Vector File> <Test File> -o <Output File> -s <Korlex>\n");
 		printf("Vector File contains word projections in the Binary Format.\n");
 		printf("Output File is Option. You don't need to use it.\n\n");
 		return 0;
@@ -93,25 +93,25 @@ int main(int argc, char **argv) {
 			if (strcmp(argv[3], "-o") == 0) {
 				option = true;
 			}
-			else if (strcmp(argv[3], "-k") == 0) {
+			else if (strcmp(argv[3], "-s") == 0) {
 				senseFlag = true;
 				korlexFile = fopen(argv[4], "r");
 			}
 			else {
-				printf("Usage: ./distance-pair-accuracy <Vector File> <Test File> -o <Output File>\n");
+				printf("Usage: ./distance-pair-accuracy <Vector File> <Test File> -o <Output File> -s <Korlex>\n");
 				printf("Vector File contains word projections in the Binary Format.\n");
 				printf("Output File is Option. You don't need to use it.\n\n");
 				return 0;
 			}
 		}
 		else {
-			if (strcmp(argv[3], "-o") == 0 && strcmp(argv[5], "-k") == 0) {
+			if (strcmp(argv[3], "-o") == 0 && strcmp(argv[5], "-s") == 0) {
 				option = true;
 				senseFlag = true;
 				korlexFile = fopen(argv[6], "r");
 			}
 			else {
-				printf("Usage: ./distance-pair-accuracy <Vector File> <Test File> -o <Output File>\n");
+				printf("Usage: ./distance-pair-accuracy <Vector File> <Test File> -o <Output File> -s <Korlex>\n");
 				printf("Vector File contains word projections in the Binary Format.\n");
 				printf("Output File is Option. You don't need to use it.\n\n");
 				return 0;
