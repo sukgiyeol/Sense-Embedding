@@ -8,7 +8,7 @@ typedef enum { false, true } bool;
 const long long max_size = 2000;         // max length of strings
 const long long N = 3;                   // number of closest words
 const long long max_w = 50;              // max length of vocabulary entries
-bool senseFlag = false;
+bool senseFlag = false , option = false, notVocab = false; 
 
 
 struct sense_data {
@@ -78,7 +78,6 @@ int SearchSense(char *sense) {
 int main(int argc, char **argv)
 {
 	FILE *vectorFile, *testFile, *outputFile, *korlexFile;
-	bool option = false, notVocab;
 	char bestw[N][max_size], filename[100], ch;
 	char **st;
 	float dist, len, bestd[N], vec[max_size];
