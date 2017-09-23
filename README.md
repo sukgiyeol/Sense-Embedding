@@ -19,7 +19,7 @@ Contents
 
 구조도
 =====
-
+![구조도](./img/structure.png)
 
 사용법
 =====
