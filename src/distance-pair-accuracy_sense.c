@@ -8,10 +8,9 @@ const long long max_width = 50;                  // max length of word alphabet
 struct sense_data {
 	char *sense, *word;
 };
-bool senseFlag = false;
+bool senseFlag = false , option = false , found = false;
 int *hash_array, hash_size;
 struct sense_data *list;
-
 
 int StrNumCompare(const void *a, const void *b) {
 	struct sense_data* ptr_a = (struct sense_data*)a;
@@ -71,7 +70,6 @@ int SearchSense(char *sense) {
 
 int main(int argc, char **argv) {
 	FILE *vectorFile, *testFile, *outputFile, *korlexFile;
-	bool option, found;
 	char ch, file_name[100], data[2][20], korlex_line[max_size];;
 	char *vocab, *main_p, *main_sp;
 	float dist, len, vec[max_size];
