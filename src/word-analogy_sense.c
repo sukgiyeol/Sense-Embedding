@@ -214,19 +214,29 @@ int main(int argc, char **argv) {
 			for (b = 0; b < words; b++) if (!strcmp(&vocab[b * max_w], st[a])) break;
 			if (b == words) b = 0;
 			bi[a] = b;
-			int index = SearchSense(st[a]);
-			if (index != -1){
-				printf(" (%s",list[index].word);
-				index++;
-				while (!strcmp(st[a], list[index].sense)) {
-					printf(", %s", list[index].word);
-					index++;
-				}
-				printf(" )  Position in vocabulary : %lld\n",bi[a]);
-			}
-			else {
-				printf("\nWord: %s  Position in vocabulary: %lld\n", st[a], bi[a]);
-			}
+			if(senseFlag){
+                                int index = SearchSense(st[a]);
+                                if (index != -1){
+                                        printf(" (%s",list[index].word);
+                                        index++;
+                                        while (!strcmp(st[a], list[index].sense)) {
+                                                printf(", %s", list[index].word);
+                                                index++;
+                                        }
+                                        printf(" )  Position in vocabulary : %lld\n",bi[a]);
+                                }
+                                else{
+                                        printf("\nWord: %s  Position in vocabulary: %lld\n", st[a], bi[a]);
+                                }
+                        }
+                        else {
+                                printf("\nWord: %s  Position in vocabulary: %lld\n", st[a], bi[a]);
+                        }
+                        if (b == 0) {
+                                printf("Out of dictionary word!\n");
+                                break;
+                        }
+
 			if (b == 0) {
 				printf("Out of dictionary word!\n");
 				break;
